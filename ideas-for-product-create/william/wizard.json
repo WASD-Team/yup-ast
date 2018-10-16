@@ -30,6 +30,10 @@
             "props": {
                 "label": "wizard.description.product",
                 "placeholder": "placeholder.product_description"
+            },
+            "validations": {
+                "min": [50, "wizard.validations.step2.title.minLength"],
+                "max": [1500, "wizard.validations.step2.description.maxLength"]
             }
         },
 

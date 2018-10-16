@@ -100,9 +100,7 @@
         "model": "checkbox",
         "type": "input-checkbox",
         "props": { "label": "properties.default_label" },
-        "validations": {
-            "oneOf": [false, true]
-        }
+        "validations": [["oneOf", [false, true]]]
     },
     {
         "id": "01c40431-bfc6-4a84-8eb2-78245c1750ba",
