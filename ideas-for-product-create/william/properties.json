@@ -14,9 +14,7 @@
         "props": {
             "label": "properties.default_label"
         },
-        "validations": {
-            "required": true
-        }
+        "validations": ["yup.string", "yup.required"]
     },
     {
         "type": "select",
@@ -24,9 +22,7 @@
         "props": {
             "label": "properties.default_label"
         },
-        "validations": {
-            "required": true
-        }
+        "validations": ["yup.string", "yup.required"]
     },
     {
         "id": "9b656422-8ab0-470b-983d-e76deba693b3",
@@ -35,12 +31,13 @@
         "props": {
             "label": "properties.default_label"
         },
-        "validations": {
-            "required": true,
-            "min": [5, "wizard.validations.step2.title.minLength"],
-            "max": [40, "wizard.validations.step2.title.maxLength"],
-            "textRatio": [0.075, "wizard.validations.step2.title.textRatio"]
-        }
+        "validations": [
+            "yup.string",
+            "yup.required",
+            ["yup.min", 5, "wizard.validations.step2.title.minLength"],
+            ["yup.max", 1500, "wizard.validations.step2.description.maxLength"],
+            ["overgear.textRation", "wizard.validations.step2.title.textRatio"]
+        ]
     },
     {
         "id": "58e96a91-9985-4073-9add-ca6b911c3636",
@@ -51,10 +48,12 @@
             "label": "properties.default_label",
             "placeholder": "placeholder.product_description"
         },
-        "validations": {
-            "min": [5, "wizard.validations.step2.title.minLength"],
-            "max": [1500, "wizard.validations.step2.description.maxLength"]
-        }
+        "validations": [
+            "yup.string",
+            "yup.required",
+            ["yup.min", 5, "wizard.validations.step2.title.minLength"],
+            ["yup.max", 1500, "wizard.validations.step2.description.maxLength"]
+        ]
     },
     {
         "type": "read-only-title",
@@ -68,20 +67,14 @@
         "type": "input-duration",
         "id": "6e8614e1-487f-4b41-ab23-27842b1ac4fe",
         "model": "options.duration",
-        "validations": {
-            "required": true,
-            "custom": ["is-in-future"]
-        },
+        "validations": ["yup.number", "yup.required", "overgear.isFuture"],
         "props": { "label": "properties.default_label" }
     },
     {
         "type": "input-currency",
         "id": "c7d607ee-f676-4fc7-90d0-ef09479f36ba",
         "model": "options.basePrice",
-        "validations": {
-            "min": 0.1,
-            "required": true
-        },
+        "validations": ["yup.number", "yup.required", "yup.min", 0.1],
         "props": {
             "showCommission": true,
             "label": "properties.default_label",
@@ -105,7 +98,18 @@
     {
         "id": "01c40431-bfc6-4a84-8eb2-78245c1750ba",
         "type": "input-additional-options",
-        "validations": {},
+        "validations": [
+            "yup.oneOf",
+            [
+                "yup.arrayOf",
+                "yup.object",
+                "yup.shape",
+                {
+                    "value": ["yup.number", "yup.required", "yup.min", 5]
+                }
+            ],
+            ["yup.boolean", "yup.oneOf", false, true]
+        ],
         "props": {
             "maxOptions": 25
         }
