@@ -31,10 +31,10 @@
                 "label": "wizard.description.product",
                 "placeholder": "placeholder.product_description"
             },
-            "validations": {
-                "min": [50, "wizard.validations.step2.title.minLength"],
-                "max": [1500, "wizard.validations.step2.description.maxLength"]
-            }
+            "validations": [
+                ["yup.string", ["yup.min", 50, "wizard.validations.step2.title.minLength"]],
+                ["yup.string", ["yup.max", 1500, "wizard.validations.step2.description.maxLength"]]
+            ]
         },
 
         { "type": "page-break-property" },
@@ -49,9 +49,7 @@
             "props": {
                 "label": "properties.default_label"
             },
-            "validations": {
-                "moreThanPriceUSD": 4
-            }
+            "validations": ["yup.number", "yup.required", ["yup.min", 4]]
         },
         {
             "type": "input-checkbox",

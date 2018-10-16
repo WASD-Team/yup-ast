@@ -99,16 +99,34 @@
         "id": "01c40431-bfc6-4a84-8eb2-78245c1750ba",
         "type": "input-additional-options",
         "validations": [
-            "yup.oneOf",
+            ["yup.arrayOf"],
+            ["yup.object"],
             [
-                "yup.arrayOf",
-                "yup.object",
                 "yup.shape",
                 {
+                    "title": [
+                        ["yup.object"],
+                        [
+                            "yup.shape",
+                            {
+                                "en": [
+                                    "yu.string",
+                                    "yup.required",
+                                    ["yup.min", 5, "String must be at least 5 characters"],
+                                    ["yup.max", 50, "String must be at most 50 characters"]
+                                ],
+                                "ru": [
+                                    "yu.string",
+                                    "yup.required",
+                                    ["yup.min", 5, "String must be at least 5 characters"],
+                                    ["yup.max", 50, "String must be at most 50 characters"]
+                                ]
+                            }
+                        ]
+                    ],
                     "value": ["yup.number", "yup.required", "yup.min", 5]
                 }
-            ],
-            ["yup.boolean", "yup.oneOf", false, true]
+            ]
         ],
         "props": {
             "maxOptions": 25
