@@ -240,7 +240,6 @@ describe('correctly transforms data from JSON to YUP', () => {
     });
 
     // it('handles objects of objects', () => {
-    //     setDebug();
     //     const validator = convertJsonToYup([
     //         [
     //             'yup.object.shape',
@@ -248,12 +247,7 @@ describe('correctly transforms data from JSON to YUP', () => {
     //                 test: [
     //                     'yup.object.shape',
     //                     {
-    //                         title: [
-    //                             ['yup.string'],
-    //                             ['yup.required'],
-    //                             ['yup.max', 7, 'String must be at most 8 characters'],
-    //                             ['yup.min', 5, 'String must be at least 5 characters'],
-    //                         ],
+    //                         title: [['yup.number']],
     //                     },
     //                 ],
     //             },
@@ -261,23 +255,6 @@ describe('correctly transforms data from JSON to YUP', () => {
     //         ['yup.required'],
     //     ]);
 
-    //     // console.log(
-    //     //     yup.array().of(
-    //     //         yup.object().shape({
-    //     //             title: yup.object().shape({
-    //     //                 en: yup.string().required(),
-    //     //                 ru: yup.string().required(),
-    //     //             }),
-    //     //         })
-    //     //     )
-    //     // );
-
-    //     console.log(validator);
-
-    //     expect(validator.isValidSync({ test: { title: '12345' } })).toEqual(true);
-    //     expect(validator.isValidSync({ test: { title: '12345678' } })).toEqual(true);
-    //     expect(validator.isValidSync({ test: { title: '1234' } })).toEqual(false);
-    //     expect(validator.isValidSync({ test: {} })).toEqual(false);
     //     expect(validator.isValidSync()).toEqual(false);
     // });
 });
