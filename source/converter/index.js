@@ -42,6 +42,39 @@ function getYupFunction(functionName, objectToLookup = yup) {
     return defaultValidator;
 }
 
+function isPrefixNotation([functionName]) {
+    if (functionName instanceof Array) {
+        if (isPrefixNotation(functionName)) return true;
+    }
+
+    if (typeof functionName !== 'string') return false;
+    if (functionName.indexOf('yup.') < 0) return false;
+
+    return true;
+}
+
+export function transformAllArrays(jsonObjectOrArray) {
+    if (jsonObjectOrArray instanceof Array) {
+        if (isPrefixNotation(jsonObjectOrArray)) {
+            return convertJsonToYup(jsonObjectOrArray);
+        }
+
+        return jsonObjectOrArray.map(transformAllArrays);
+    }
+
+    if (jsonObjectOrArray instanceof Object) {
+        const toReturn = {};
+
+        Object.entries(jsonObjectOrArray).forEach(([key, value]) => {
+            toReturn[key] = transformAllArrays(value);
+        });
+
+        return toReturn;
+    }
+
+    return jsonObjectOrArray;
+}
+
 /**
  * Converts an array of ['yup.number'] to yup.number().
  * @param {[Any]} jsonArray - The validation array.
@@ -57,7 +90,7 @@ function convertArray([functionName, ...argsToPass], previousInstance = yup) {
         console.error('Did not receive function');
     }
 
-    return gotFunc(...argsToPass);
+    return gotFunc(...argsToPass.map(transformAllArrays));
 }
 
 /**
