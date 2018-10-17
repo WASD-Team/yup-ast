@@ -1,11 +1,27 @@
+import get from 'lodash/get';
+import set from 'lodash/set';
+
 import * as yup from 'yup';
 
 /**
- * Used when we're unable to find a function.
- * @returns {boolean} Always false.
+ * __MUTATES__ {object} __MUTATES___
+ * Check to see if an object has {key}
+ * If the object has key, return it
+ * If the object does not, add {defaultVal} to the object
+ * then return {defaultVal}
+ *
+ * @public
+ * @param key {string} Key to lookup in the item
+ * @param defaultVal {any} Value to be given to that key if it does not already exist
+ * @param object {object} takes object
  */
-function defaultValidator() {
-    return () => ({});
+export function addDefault(object, key, defaultVal) {
+    const item = get(object, key, undefined);
+    if (item !== undefined) {
+        return item;
+    }
+    set(object, key, defaultVal);
+    return defaultVal;
 }
 
 /**
@@ -17,6 +33,8 @@ function defaultValidator() {
  * @returns {string|null} Null if no match found.
  */
 function getSubString(string, substring) {
+    if (!string) return null;
+
     const testedIndex = string.indexOf(substring);
 
     if (testedIndex > -1) {
@@ -29,17 +47,26 @@ function getSubString(string, substring) {
 /**
  * Returns a function from yup, by passing in a function name from our schema.
  * @param {string} functionName - The string to search for a function.
- * @param {object} objectToLookup - Object from previous validator result or yup itself.
+ * @param {object} options - Parameters for the schema.
+ * @param {object} options.previousInstance - Object from previous validator result or yup itself.
  * @returns {function} Either the found yup function or the default validator.
  */
-function getYupFunction(functionName, objectToLookup = yup) {
+function getYupFunction(functionName, options = {}) {
+    const { previousInstance = yup } = options;
+
     const yupName = getSubString(functionName, 'yup.');
 
-    if (yupName && objectToLookup[yupName] instanceof Function) {
-        return objectToLookup[yupName].bind(objectToLookup);
+    if (previousInstance[yupName] instanceof Function) {
+        return previousInstance[yupName].bind(previousInstance);
     }
 
-    return defaultValidator;
+    if (yupName && yup[yupName] instanceof Function) {
+        return yup[yupName].bind(yup);
+    }
+
+    console.log(options);
+    debugger;
+    throw new Error('Could not find validation function ' + functionName);
 }
 
 /**
@@ -60,21 +87,36 @@ function isPrefixNotation([functionName]) {
 }
 
 /**
+ * Ensures that prefix functions come as an array.
+ * @param {array|string} arrayToExtract - Sometimes we might recurse too deep, and this could be a string.
+ * @returns {array} With the function name as the first argument.
+ */
+function ensureFunctionName(arrayToExtract) {
+    if (typeof arrayToExtract === 'string') {
+        return [arrayToExtract];
+    }
+
+    return arrayToExtract;
+}
+
+/**
  * Converts an array of ['yup.number'] to yup.number().
  * @param {[Any]} jsonArray - The validation array.
  * @param {object} previousInstance - The result of a call to yup.number()
  * i.e. an object schema validation set
  * @returns {function} generated yup validator
  */
-function convertArray([functionName, ...argsToPass], previousInstance = yup) {
-    const gotFunc = getYupFunction(functionName, previousInstance);
+function convertArray(arrayToConvert, options = {}) {
+    const [functionName, ...argsToPass] = ensureFunctionName(arrayToConvert);
+
+    const gotFunc = getYupFunction(functionName, options);
 
     // Ensure that we received a valid function from the extractor
     if (gotFunc instanceof Function === false) {
         console.error('Did not receive function');
     }
 
-    return gotFunc(...argsToPass.map(transformAll));
+    return gotFunc(...argsToPass.map(i => transformAll(i, options)));
 }
 
 /**
@@ -83,11 +125,19 @@ function convertArray([functionName, ...argsToPass], previousInstance = yup) {
  * @param {object|array} jsonArray - JSON data which will be transformed to yup.
  * @returns {function} New yup validator
  */
-export function convertJsonToYup(jsonArray) {
-    let toReturn = convertArray(jsonArray[0]);
+export function convertJsonToYup(jsonArray, options = {}) {
+    // Don't recurse too deply into arrays
+    const [firstArgument] = jsonArray;
+    console.log('Argument', firstArgument);
+    if (typeof firstArgument === 'string') {
+        return convertArray(jsonArray, { previousInstance: getYupFunction(firstArgument, options)() });
+    }
+
+    let toReturn = convertArray(firstArgument);
 
     jsonArray.slice(1).forEach(item => {
-        toReturn = convertArray(item, toReturn);
+        console.log(toReturn);
+        toReturn = convertArray(item, { previousInstance: toReturn });
     });
 
     return toReturn;
@@ -98,16 +148,16 @@ export function convertJsonToYup(jsonArray) {
  * @param {object|array} jsonObjectOrArray - Object to be transformed.
  * @returns {yup.Validator}
  */
-export function transformAll(jsonObjectOrArray) {
+export function transformAll(jsonObjectOrArray, options = {}) {
     // We're dealing with an array
     // This could be a prefix notation function
     // If so, we'll call the converter
     if (jsonObjectOrArray instanceof Array) {
         if (isPrefixNotation(jsonObjectOrArray)) {
-            return convertJsonToYup(jsonObjectOrArray);
+            return convertJsonToYup(jsonObjectOrArray, options);
         }
 
-        return jsonObjectOrArray.map(transformAll);
+        return jsonObjectOrArray.map(i => transformAll(i, options));
     }
 
     // If we're dealing with an object
@@ -117,7 +167,7 @@ export function transformAll(jsonObjectOrArray) {
         const toReturn = {};
 
         Object.entries(jsonObjectOrArray).forEach(([key, value]) => {
-            toReturn[key] = transformAll(value);
+            toReturn[key] = transformAll(value, options);
         });
 
         return toReturn;

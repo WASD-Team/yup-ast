@@ -124,7 +124,7 @@
                             }
                         ]
                     ],
-                    "value": ["yup.number", "yup.required", "yup.min", 5]
+                    "value": [["yup.number"], ["yup.required"], ["yup.min", 5]]
                 }
             ]
         ],

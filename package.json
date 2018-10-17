@@ -13,6 +13,7 @@
         "build:dev": "NODE_ENV=development webpack -w --progress --config webpack.config.js",
         "test": "cross-env NODE_ENV=test jest --coverage",
         "test:watch": "cross-env NODE_ENV=test jest --watchAll --bail",
+        "test:inspect": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand --watchAll",
         "precommit": "lint-staged",
         "lint-js": "eslint --ignore-path .gitignore --ignore-pattern \"!**/.*\" .",
         "lint-css": "stylelint \"src/**/*.{css,less,styl,scss,sass,sss}\"",

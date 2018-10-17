@@ -200,4 +200,43 @@ describe('correctly transforms data from JSON to YUP', () => {
             });
         });
     });
+
+    describe('handles more complex object schema', () => {
+        const validator = convertJsonToYup([
+            ['yup.array'],
+            [
+                'yup.of',
+                ['yup.object'],
+                [
+                    'yup.shape',
+                    {
+                        title: [
+                            ['yup.object'],
+                            [
+                                'yup.shape',
+                                {
+                                    en: [
+                                        ['yup.string'],
+                                        ['yup.required'],
+                                        ['yup.min', 5, 'String must be at least 5 characters'],
+                                        ['yup.max', 50, 'String must be at most 50 characters'],
+                                    ],
+                                    ru: [
+                                        ['yup.string'],
+                                        ['yup.required'],
+                                        ['yup.min', 5, 'String must be at least 5 characters'],
+                                        ['yup.max', 50, 'String must be at most 50 characters'],
+                                    ],
+                                },
+                            ],
+                        ],
+                        value: [['yup.number'], ['yup.required'], ['yup.min', 5]],
+                    },
+                ],
+            ],
+        ]);
+
+        console.log(validator);
+        expect(validator.isValidSync([{ title: { en: 'test', ru: 'test' }, value: 5 }])).toEqual(true);
+    });
 });
