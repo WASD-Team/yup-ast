@@ -5,7 +5,7 @@ import * as yup from 'yup';
  * @returns {boolean} Always false.
  */
 function defaultValidator() {
-    return false;
+    return () => ({});
 }
 
 /**
@@ -29,13 +29,14 @@ function getSubString(string, substring) {
 /**
  * Returns a function from yup, by passing in a function name from our schema.
  * @param {string} functionName - The string to search for a function.
+ * @param {object} objectToLookup - Object from previous validator result or yup itself.
  * @returns {function} Either the found yup function or the default validator.
  */
-function getYupFunction(functionName) {
+function getYupFunction(functionName, objectToLookup = yup) {
     const yupName = getSubString(functionName, 'yup.');
 
-    if (yupName) {
-        return yup[yupName];
+    if (yupName && objectToLookup[yupName] instanceof Function) {
+        return objectToLookup[yupName].bind(objectToLookup);
     }
 
     return defaultValidator;
@@ -44,9 +45,19 @@ function getYupFunction(functionName) {
 /**
  * Converts an array of ['yup.number'] to yup.number().
  * @param {[Any]} jsonArray - The validation array.
+ * @param {object} previousInstance - The result of a call to yup.number()
+ * i.e. an object schema validation set
+ * @returns {function} generated yup validator
  */
-function convertArray([functionName, ...argsToPass]) {
-    return getYupFunction(functionName)(argsToPass);
+function convertArray([functionName, ...argsToPass], previousInstance = yup) {
+    const gotFunc = getYupFunction(functionName, previousInstance);
+
+    // Ensure that we received a valid function from the extractor
+    if (gotFunc instanceof Function === false) {
+        console.error('Did not receive function');
+    }
+
+    return gotFunc(...argsToPass);
 }
 
 /**
@@ -56,7 +67,11 @@ function convertArray([functionName, ...argsToPass]) {
  * @returns {function} New yup validator
  */
 export function convertJsonToYup(jsonArray) {
-    const toReturn = convertArray(jsonArray[0]);
+    let toReturn = convertArray(jsonArray[0]);
+
+    jsonArray.slice(1).forEach(item => {
+        toReturn = convertArray(item, toReturn);
+    });
 
     return toReturn;
 }
