@@ -1,11 +1,11 @@
 import * as yup from 'yup';
 import yupPrinter from 'yup/lib/util/printValue';
 
-import { convertJsonToYup, transformAllArrays } from '..';
+import { convertJsonToYup, transformAll } from '..';
 
 describe('correctly walks a schema object', () => {
     it('walks arrays', () => {
-        const result = transformAllArrays([['yup.object'], ['yup.shape']]);
+        const result = transformAll([['yup.object'], ['yup.shape']]);
 
         expect(result).toBeInstanceOf(yup.object);
         expect(result.isValidSync({})).toEqual(true);
@@ -13,7 +13,7 @@ describe('correctly walks a schema object', () => {
     });
 
     it('walks arrays with objects', () => {
-        const result = transformAllArrays([
+        const result = transformAll([
             ['yup.object'],
             ['yup.shape', { test: [['yup.number'], ['yup.required'], ['yup.max', 500]] }],
             ['yup.required'],
@@ -25,7 +25,7 @@ describe('correctly walks a schema object', () => {
     });
 
     it('walks arrays with objects containing multiple items', () => {
-        const result = transformAllArrays([
+        const result = transformAll([
             ['yup.object'],
             [
                 'yup.shape',

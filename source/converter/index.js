@@ -42,6 +42,12 @@ function getYupFunction(functionName, objectToLookup = yup) {
     return defaultValidator;
 }
 
+/**
+ * Here we check to see if a passed array could be a prefix notation function.
+ * @param {array} item - Item to be checked.
+ * @param {any} item.functionName - We'll check this, and perhaps it's a prefix function name.
+ * @returns {boolean} True if we are actually looking at prefix notation.
+ */
 function isPrefixNotation([functionName]) {
     if (functionName instanceof Array) {
         if (isPrefixNotation(functionName)) return true;
@@ -51,28 +57,6 @@ function isPrefixNotation([functionName]) {
     if (functionName.indexOf('yup.') < 0) return false;
 
     return true;
-}
-
-export function transformAllArrays(jsonObjectOrArray) {
-    if (jsonObjectOrArray instanceof Array) {
-        if (isPrefixNotation(jsonObjectOrArray)) {
-            return convertJsonToYup(jsonObjectOrArray);
-        }
-
-        return jsonObjectOrArray.map(transformAllArrays);
-    }
-
-    if (jsonObjectOrArray instanceof Object) {
-        const toReturn = {};
-
-        Object.entries(jsonObjectOrArray).forEach(([key, value]) => {
-            toReturn[key] = transformAllArrays(value);
-        });
-
-        return toReturn;
-    }
-
-    return jsonObjectOrArray;
 }
 
 /**
@@ -90,7 +74,7 @@ function convertArray([functionName, ...argsToPass], previousInstance = yup) {
         console.error('Did not receive function');
     }
 
-    return gotFunc(...argsToPass.map(transformAllArrays));
+    return gotFunc(...argsToPass.map(transformAll));
 }
 
 /**
@@ -107,4 +91,38 @@ export function convertJsonToYup(jsonArray) {
     });
 
     return toReturn;
+}
+
+/**
+ * Steps into arrays and objects and resolve the items inside to yup validators.
+ * @param {object|array} jsonObjectOrArray - Object to be transformed.
+ * @returns {yup.Validator}
+ */
+export function transformAll(jsonObjectOrArray) {
+    // We're dealing with an array
+    // This could be a prefix notation function
+    // If so, we'll call the converter
+    if (jsonObjectOrArray instanceof Array) {
+        if (isPrefixNotation(jsonObjectOrArray)) {
+            return convertJsonToYup(jsonObjectOrArray);
+        }
+
+        return jsonObjectOrArray.map(transformAll);
+    }
+
+    // If we're dealing with an object
+    // we should check each of the values for that object.
+    // Some of them may also be prefix notation functiosn
+    if (jsonObjectOrArray instanceof Object) {
+        const toReturn = {};
+
+        Object.entries(jsonObjectOrArray).forEach(([key, value]) => {
+            toReturn[key] = transformAll(value);
+        });
+
+        return toReturn;
+    }
+
+    // No case here, just return anything else
+    return jsonObjectOrArray;
 }
