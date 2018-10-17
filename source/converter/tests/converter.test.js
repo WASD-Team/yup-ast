@@ -201,42 +201,83 @@ describe('correctly transforms data from JSON to YUP', () => {
         });
     });
 
-    describe('handles more complex object schema', () => {
+    it('handles more complex object schema', () => {
         const validator = convertJsonToYup([
-            ['yup.array'],
             [
-                'yup.of',
-                ['yup.object'],
-                [
-                    'yup.shape',
-                    {
-                        title: [
-                            ['yup.object'],
-                            [
-                                'yup.shape',
-                                {
-                                    en: [
-                                        ['yup.string'],
-                                        ['yup.required'],
-                                        ['yup.min', 5, 'String must be at least 5 characters'],
-                                        ['yup.max', 50, 'String must be at most 50 characters'],
-                                    ],
-                                    ru: [
-                                        ['yup.string'],
-                                        ['yup.required'],
-                                        ['yup.min', 5, 'String must be at least 5 characters'],
-                                        ['yup.max', 50, 'String must be at most 50 characters'],
-                                    ],
-                                },
-                            ],
+                'yup.object.shape',
+                {
+                    title: [
+                        [
+                            'yup.object.shape',
+                            {
+                                en: [
+                                    ['yup.string'],
+                                    ['yup.required'],
+                                    ['yup.min', 5, 'String must be at least 5 characters'],
+                                    ['yup.max', 50, 'String must be at most 50 characters'],
+                                ],
+                                ru: [
+                                    ['yup.string'],
+                                    ['yup.required'],
+                                    ['yup.min', 5, 'String must be at least 5 characters'],
+                                    ['yup.max', 50, 'String must be at most 50 characters'],
+                                ],
+                            },
                         ],
-                        value: [['yup.number'], ['yup.required'], ['yup.min', 5]],
-                    },
-                ],
+                        ['yup.required'],
+                    ],
+                    value: [['yup.number'], ['yup.required'], ['yup.min', 5]],
+                },
             ],
         ]);
 
-        console.log(validator);
-        expect(validator.isValidSync([{ title: { en: 'test', ru: 'test' }, value: 5 }])).toEqual(true);
+        expect(validator.isValidSync({ title: { en: '12345', ru: '12345' }, value: 5 })).toEqual(true);
+        expect(validator.isValidSync({ title: { en: '12345', ru: '12345' } })).toEqual(false);
+        expect(validator.isValidSync({ title: { ru: '12345' }, value: 5 })).toEqual(false);
+        expect(validator.isValidSync({ title: { en: '12345' }, value: 5 })).toEqual(false);
+        expect(validator.isValidSync({ title: { en: '12345', ru: '12345' } })).toEqual(false);
+        expect(validator.isValidSync()).toEqual(false);
     });
+
+    // it('handles objects of objects', () => {
+    //     setDebug();
+    //     const validator = convertJsonToYup([
+    //         [
+    //             'yup.object.shape',
+    //             {
+    //                 test: [
+    //                     'yup.object.shape',
+    //                     {
+    //                         title: [
+    //                             ['yup.string'],
+    //                             ['yup.required'],
+    //                             ['yup.max', 7, 'String must be at most 8 characters'],
+    //                             ['yup.min', 5, 'String must be at least 5 characters'],
+    //                         ],
+    //                     },
+    //                 ],
+    //             },
+    //         ],
+    //         ['yup.required'],
+    //     ]);
+
+    //     // console.log(
+    //     //     yup.array().of(
+    //     //         yup.object().shape({
+    //     //             title: yup.object().shape({
+    //     //                 en: yup.string().required(),
+    //     //                 ru: yup.string().required(),
+    //     //             }),
+    //     //         })
+    //     //     )
+    //     // );
+
+    //     console.log(validator);
+
+    //     expect(validator.isValidSync({ test: { title: '12345' } })).toEqual(true);
+    //     expect(validator.isValidSync({ test: { title: '12345678' } })).toEqual(true);
+    //     expect(validator.isValidSync({ test: { title: '1234' } })).toEqual(false);
+    //     expect(validator.isValidSync({ test: {} })).toEqual(false);
+    //     expect(validator.isValidSync()).toEqual(false);
+    // });
 });
