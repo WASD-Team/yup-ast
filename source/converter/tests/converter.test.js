@@ -1,7 +1,7 @@
 import * as yup from 'yup';
 import yupPrinter from 'yup/lib/util/printValue';
 
-import { convertJsonToYup, transformAll } from '..';
+import { transformAll, transformObject } from '..';
 
 describe('correctly walks a schema object', () => {
     it('walks arrays', () => {
@@ -171,7 +171,7 @@ describe('correctly transforms data from JSON to YUP', () => {
     describe('number tests', () => {
         numberTests.forEach(({ name, input, validates: { success = [], failure = [] } }) => {
             it(name, () => {
-                const generatedValidator = convertJsonToYup(input);
+                const generatedValidator = transformAll(input);
 
                 success.forEach(item => expect(generatedValidator.isValidSync(item)).toEqual(true));
                 failure.forEach(item => expect(generatedValidator.isValidSync(item)).toEqual(false));
@@ -182,7 +182,7 @@ describe('correctly transforms data from JSON to YUP', () => {
     describe('string tests', () => {
         stringTests.forEach(({ name, input, validates: { success = [], failure = [] } }) => {
             it(name, () => {
-                const generatedValidator = convertJsonToYup(input);
+                const generatedValidator = transformAll(input);
 
                 success.forEach(item => expect(generatedValidator.isValidSync(item)).toEqual(true));
                 failure.forEach(item => expect(generatedValidator.isValidSync(item)).toEqual(false));
@@ -193,22 +193,96 @@ describe('correctly transforms data from JSON to YUP', () => {
     describe('object tests', () => {
         objectTests.forEach(({ name, input, validates: { success = [], failure = [] } }) => {
             it(name, () => {
-                const generatedValidator = convertJsonToYup(input);
+                const generatedValidator = transformAll(input);
 
                 success.forEach(item => expect(generatedValidator.isValidSync(item)).toEqual(true));
                 failure.forEach(item => expect(generatedValidator.isValidSync(item)).toEqual(false));
             });
         });
     });
+});
+
+describe('transform object', () => {
+    it('correctly transforms a basic object', () => {
+        const validator = transformObject({});
+
+        Object.values(validator).forEach(validator => {
+            expect(validator.isValidSync({})).toEqual(true);
+            expect(validator.isValidSync(5)).toEqual(false);
+            expect(validator.isValidSync('A')).toEqual(false);
+            expect(validator.isValidSync(false)).toEqual(false);
+            expect(validator.isValidSync(new Map())).toEqual(true);
+        });
+    });
+
+    it('correctly transforms a more complex object', () => {
+        const validator = transformObject({
+            test: [
+                // prettier-no-wrap
+                ['yup.number'],
+                ['yup.required'],
+                ['yup.min', 20],
+                ['yup.max', 50],
+            ],
+        });
+
+        Object.values(validator).forEach(validator => {
+            expect(validator.isValidSync({})).toEqual(false);
+            expect(validator.isValidSync('1')).toEqual(false);
+            expect(validator.isValidSync('A')).toEqual(false);
+            expect(validator.isValidSync(null)).toEqual(false);
+            expect(validator.isValidSync(20)).toEqual(true);
+            expect(validator.isValidSync(50)).toEqual(true);
+            expect(validator.isValidSync(51)).toEqual(false);
+            expect(validator.isValidSync(19)).toEqual(false);
+        });
+    });
+
+    it('correctly transforms an object inside another object', () => {
+        const validator = transformObject({
+            test: [
+                // prettier-no-wrap
+                ['yup.object'],
+                [
+                    'yup.shape',
+                    {
+                        number: [
+                            // prettier-no-wrap
+                            ['yup.number'],
+                            ['yup.required'],
+                            ['yup.min', 20],
+                            ['yup.max', 50],
+                        ],
+                    },
+                ],
+                ['yup.required'],
+            ],
+        });
+
+        Object.values(validator).forEach(validator => {
+            expect(validator.isValidSync({ number: {} })).toEqual(false);
+            expect(validator.isValidSync({ number: '1' })).toEqual(false);
+            expect(validator.isValidSync({ number: 'A' })).toEqual(false);
+            expect(validator.isValidSync({ number: null })).toEqual(false);
+            expect(validator.isValidSync({ number: 20 })).toEqual(true);
+            expect(validator.isValidSync({ number: 50 })).toEqual(true);
+            expect(validator.isValidSync({ number: 51 })).toEqual(false);
+            expect(validator.isValidSync({ number: 19 })).toEqual(false);
+        });
+    });
 
     it('handles more complex object schema', () => {
-        const validator = convertJsonToYup([
+        const validator = transformAll([
+            ['yup.object'],
+            ['yup.required'],
             [
-                'yup.object.shape',
+                'yup.shape',
                 {
                     title: [
+                        ['yup.object'],
+                        ['yup.required'],
                         [
-                            'yup.object.shape',
+                            'yup.shape',
                             {
                                 en: [
                                     ['yup.string'],
@@ -224,7 +298,6 @@ describe('correctly transforms data from JSON to YUP', () => {
                                 ],
                             },
                         ],
-                        ['yup.required'],
                     ],
                     value: [['yup.number'], ['yup.required'], ['yup.min', 5]],
                 },
@@ -239,22 +312,100 @@ describe('correctly transforms data from JSON to YUP', () => {
         expect(validator.isValidSync()).toEqual(false);
     });
 
-    // it('handles objects of objects', () => {
-    //     const validator = convertJsonToYup([
-    //         [
-    //             'yup.object.shape',
-    //             {
-    //                 test: [
-    //                     'yup.object.shape',
-    //                     {
-    //                         title: [['yup.number']],
-    //                     },
-    //                 ],
-    //             },
-    //         ],
-    //         ['yup.required'],
-    //     ]);
+    it('handles objects of objects', () => {
+        const validator = transformAll([
+            ['yup.object'],
+            ['yup.required'],
+            [
+                'yup.shape',
+                {
+                    test: [
+                        ['yup.object'],
+                        ['yup.required'],
+                        [
+                            'yup.shape',
+                            {
+                                number: [
+                                    // prettier-no-wrap
+                                    ['yup.number'],
+                                    ['yup.required'],
+                                    ['yup.min', 20],
+                                    ['yup.max', 50],
+                                ],
+                            },
+                        ],
+                    ],
+                },
+            ],
+            ['yup.required'],
+        ]);
 
-    //     expect(validator.isValidSync()).toEqual(false);
-    // });
+        expect(validator.isValidSync({})).toEqual(false);
+        expect(
+            validator.isValidSync({
+                test: {
+                    number: 'A',
+                },
+            })
+        ).toEqual(false);
+
+        expect(
+            validator.isValidSync({
+                test: {},
+            })
+        ).toEqual(false);
+    });
+
+    it('handles arrays of objects', () => {
+        const validator = transformAll([
+            ['yup.array'],
+            ['yup.required'],
+            [
+                'yup.of',
+                [
+                    ['yup.object'],
+                    [
+                        'yup.shape',
+                        {
+                            test: [
+                                ['yup.object'],
+                                ['yup.required'],
+                                [
+                                    'yup.shape',
+                                    {
+                                        number: [
+                                            // prettier-no-wrap
+                                            ['yup.number'],
+                                            ['yup.required'],
+                                            ['yup.min', 20],
+                                            ['yup.max', 50],
+                                        ],
+                                    },
+                                ],
+                            ],
+                        },
+                    ],
+                ],
+            ],
+        ]);
+
+        expect(validator.isValidSync([])).toEqual(false);
+        expect(
+            validator.isValidSync([
+                {
+                    test: {
+                        number: 'A',
+                    },
+                },
+            ])
+        ).toEqual(false);
+
+        expect(
+            validator.isValidSync([
+                {
+                    test: {},
+                },
+            ])
+        ).toEqual(false);
+    });
 });

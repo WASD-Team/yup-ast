@@ -1,8 +1,9 @@
 import * as yup from 'yup';
 import { get as getCustomValidator, add as setCustomValidator } from './custom.validators';
 
-setCustomValidator('yup.array.of', yup.array().of, yup.array());
-setCustomValidator('yup.object.shape', yup.object().shape, yup.object());
+// Handle the case when we have an array of objects
+// but the previous instance of yup.shape is the yup.array
+setCustomValidator('yup.shape', yup.object().shape, yup.object());
 
 /**
  * Searches for {substring} in {string}.
@@ -31,6 +32,11 @@ function getSubString(string, substring) {
  * @returns {function} Either the found yup function or the default validator.
  */
 function getYupFunction(functionName, objectToLookup = yup) {
+    // Make sure we're dealing with a string
+    if (functionName instanceof Array) {
+        functionName = functionName[0];
+    }
+
     // Attempt to retrieve any custom validators first
     const customValidator = getCustomValidator(functionName);
     if (customValidator) {
@@ -41,6 +47,12 @@ function getYupFunction(functionName, objectToLookup = yup) {
     if (yupName && objectToLookup[yupName] instanceof Function) {
         return objectToLookup[yupName].bind(objectToLookup);
     }
+
+    if (yupName && yup[yupName] instanceof Function) {
+        return yup[yupName].bind(yup);
+    }
+
+    console.log(functionName, yupName, yup[yupName], objectToLookup);
 
     throw new Error('Could not find validator ' + functionName);
 }
@@ -97,16 +109,29 @@ function convertArray(arrayArgument, previousInstance = yup) {
     // We could be passing different types of arguments here
     // so we'll try to transform them before calling the function
     // yup.object().shape({ test: yup.string()}) should also be transformed
-    return gotFunc(...transformAll(argsToPass));
+    const convertedArguments = transformAll(argsToPass);
+
+    // Handle the case when we've got an array of empty elements
+    if (convertedArguments instanceof Array) {
+        if (convertedArguments.filter(i => i).length < 1) {
+            return gotFunc();
+        }
+
+        // Spread the array over the function
+        return gotFunc(...convertedArguments);
+    }
+
+    // Handle the case when we're passing another validator
+    return gotFunc(convertedArguments);
 }
 
 /**
- * Takes in a set of json data as defined in our schema, and converts
- * it to a YUP validator.
- * @param {object|array} jsonArray - JSON data which will be transformed to yup.
- * @returns {function} New yup validator
+ * Transforms an array JSON schema to yup array schema.
+ *
+ * @param {array} jsonArray - array in JSON to be transformed.
+ * @returns {array} Array with same keys, but values as yup validators.
  */
-export function convertJsonToYup(jsonArray) {
+function transformArray(jsonArray) {
     let toReturn = convertArray(jsonArray[0]);
 
     jsonArray.slice(1).forEach(item => {
@@ -115,7 +140,38 @@ export function convertJsonToYup(jsonArray) {
             return;
         }
 
+        if (item instanceof Object) {
+            toReturn = transformObject(item);
+            return;
+        }
+
         return transformAll(item);
+    });
+
+    return toReturn;
+}
+
+/**
+ * Transforms an object JSON schema to yup object schema.
+ *
+ * @param {object} jsonObject - Object in JSON to be transformed.
+ * @returns {object} Object with same keys, but values as yup validators.
+ */
+export function transformObject(jsonObject) {
+    const toReturn = {};
+
+    Object.entries(jsonObject).forEach(([key, value]) => {
+        if (value instanceof Array) {
+            toReturn[key] = transformArray(value);
+            return;
+        }
+
+        if (value instanceof Object) {
+            toReturn[key] = transformObject(value);
+            return;
+        }
+
+        toReturn[key] = value;
     });
 
     return toReturn;
@@ -132,7 +188,7 @@ export function transformAll(jsonObjectOrArray) {
     // If so, we'll call the converter
     if (jsonObjectOrArray instanceof Array) {
         if (isPrefixNotation(jsonObjectOrArray)) {
-            return convertJsonToYup(jsonObjectOrArray);
+            return transformArray(jsonObjectOrArray);
         }
 
         return jsonObjectOrArray.map(transformAll);
@@ -142,13 +198,7 @@ export function transformAll(jsonObjectOrArray) {
     // we should check each of the values for that object.
     // Some of them may also be prefix notation functiosn
     if (jsonObjectOrArray instanceof Object) {
-        const toReturn = {};
-
-        Object.entries(jsonObjectOrArray).forEach(([key, value]) => {
-            toReturn[key] = transformAll(value);
-        });
-
-        return toReturn;
+        return transformObject(jsonObjectOrArray);
     }
 
     // No case here, just return anything else
