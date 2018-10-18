@@ -1,7 +1,7 @@
 import * as yup from 'yup';
 import yupPrinter from 'yup/lib/util/printValue';
 
-import { transformAll, transformObject } from '..';
+import { transformAll, transformObject, setDebug } from '..';
 
 describe('correctly walks a schema object', () => {
     it('walks arrays', () => {
@@ -357,6 +357,7 @@ describe('transform object', () => {
     });
 
     it('handles arrays of objects', () => {
+        setDebug(true);
         const validator = transformAll([
             ['yup.array'],
             ['yup.required'],
@@ -364,24 +365,16 @@ describe('transform object', () => {
                 'yup.of',
                 [
                     ['yup.object'],
+                    ['yup.required'],
                     [
                         'yup.shape',
                         {
-                            test: [
-                                ['yup.object'],
+                            number: [
+                                // prettier-no-wrap
+                                ['yup.number'],
                                 ['yup.required'],
-                                [
-                                    'yup.shape',
-                                    {
-                                        number: [
-                                            // prettier-no-wrap
-                                            ['yup.number'],
-                                            ['yup.required'],
-                                            ['yup.min', 20],
-                                            ['yup.max', 50],
-                                        ],
-                                    },
-                                ],
+                                ['yup.min', 20],
+                                ['yup.max', 50],
                             ],
                         },
                     ],
@@ -393,9 +386,7 @@ describe('transform object', () => {
         expect(
             validator.isValidSync([
                 {
-                    test: {
-                        number: 'A',
-                    },
+                    number: 'A',
                 },
             ])
         ).toEqual(false);
@@ -403,7 +394,39 @@ describe('transform object', () => {
         expect(
             validator.isValidSync([
                 {
-                    test: {},
+                    number: {},
+                },
+            ])
+        ).toEqual(false);
+
+        expect(
+            validator.isValidSync([
+                {
+                    number: 20,
+                },
+            ])
+        ).toEqual(true);
+
+        expect(
+            validator.isValidSync([
+                {
+                    number: 50,
+                },
+            ])
+        ).toEqual(true);
+
+        expect(
+            validator.isValidSync([
+                {
+                    number: 51,
+                },
+            ])
+        ).toEqual(false);
+
+        expect(
+            validator.isValidSync([
+                {
+                    number: 19,
                 },
             ])
         ).toEqual(false);
