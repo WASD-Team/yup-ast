@@ -357,7 +357,6 @@ describe('transform object', () => {
     });
 
     it('handles arrays of objects', () => {
-        setDebug(true);
         const validator = transformAll([
             ['yup.array'],
             ['yup.required'],
