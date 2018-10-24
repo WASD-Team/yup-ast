@@ -217,3 +217,22 @@ export function transformAll(jsonObjectOrArray, previousInstance = yup) {
     // No case here, just return anything else
     return jsonObjectOrArray;
 }
+
+/**
+ * Can transform arrays or an object into a single validator.
+ * This should be your initial entrypoint.
+ *
+ * @param {object|array} jsonObjectOrArray - Object to be transformed.
+ * @returns {yup.Validator}
+ */
+export function transform(jsonObjectOrArray) {
+    // If we're dealing with an object
+    // we should check each of the values for that object.
+    // Some of them may also be prefix notation functiosn
+    if (jsonObjectOrArray instanceof Object) {
+        return transformAll([['yup.object'], ['yup.shape', jsonObjectOrArray]]);
+    }
+
+    // No case here, just return anything else
+    return transformAll(jsonObjectOrArray);
+}
