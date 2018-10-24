@@ -226,11 +226,14 @@ export function transformAll(jsonObjectOrArray, previousInstance = yup) {
  * @returns {yup.Validator}
  */
 export function transform(jsonObjectOrArray) {
-    // If we're dealing with an object
-    // we should check each of the values for that object.
-    // Some of them may also be prefix notation functiosn
     if (jsonObjectOrArray instanceof Object) {
-        return transformAll([['yup.object'], ['yup.shape', jsonObjectOrArray]]);
+        return transformAll([
+            // build a custom validator which takes an object as parameter
+            // If we don't do this, we'll get back an object of validators
+            ['yup.object'],
+            ['yup.required'],
+            ['yup.shape', jsonObjectOrArray],
+        ]);
     }
 
     // No case here, just return anything else
