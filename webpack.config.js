@@ -9,7 +9,7 @@ const { NODE_ENV = 'production' } = process.env;
 
 module.exports = {
     mode: NODE_ENV,
-    entry: ['./source/index.js'],
+    entry: './source/index.js',
     output: {
         path: resolve('dist'),
         libraryTarget: 'umd',
