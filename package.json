@@ -1,9 +1,9 @@
 {
-    "version": "0.1.6g",
+    "version": "0.1.6",
     "main": "index.js",
     "author": "will@wasd.team",
     "module": "index.js",
-    "name": "@overgear/validations",
+    "name": "@overgear/og-validations",
     "description": "Validations for different overgear models",
     "repository": "git@github.com:WASD-Team/og-validations.git",
     "scripts": {
