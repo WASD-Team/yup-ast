@@ -1,5 +1,10 @@
 import * as yup from 'yup';
-import { get as getCustomValidator, add as setCustomValidator } from './custom.validators';
+
+export {
+    // Allows user to create their own custom validation sets
+    get as getCustomValidator,
+    add as setCustomValidator,
+} from './custom.validators';
 
 let DEBUG = false;
 
@@ -10,10 +15,6 @@ let DEBUG = false;
 export function setDebug(newValue) {
     DEBUG = newValue;
 }
-
-// Handle the case when we have an array of objects
-// but the previous instance of yup.shape is the yup.array
-setCustomValidator('yup.shape', yup.object().shape, yup.object());
 
 /**
  * Searches for {substring} in {string}.

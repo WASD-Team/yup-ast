@@ -15,3 +15,7 @@ export function del(name) {
 export function get(name) {
     return CUSTOM_VALIDATORS[name];
 }
+
+// Handle the case when we have an array of objects
+// but the previous instance of yup.shape is the yup.array
+setCustomValidator('yup.shape', yup.object().shape, yup.object());
