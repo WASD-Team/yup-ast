@@ -430,4 +430,42 @@ describe('transform object', () => {
             ])
         ).toEqual(false);
     });
+
+    it('handles promise edge case test', async () => {
+        const validator = transformAll([
+            ['yup.object'],
+            ['yup.required'],
+            [
+                'yup.shape',
+                {
+                    game: [['yup.string'], ['yup.required', 'wizard.validations.is_required']],
+                    locale: [['yup.string'], ['yup.required', 'wizard.validations.is_required']],
+                    category: [['yup.string'], ['yup.required', 'wizard.validations.is_required']],
+                    subcategory: [['yup.string'], ['yup.required', 'wizard.validations.is_required']],
+                },
+            ],
+        ]);
+
+        expect(validator.isValidSync({ game: 'test' })).toEqual(false);
+        expect(validator.isValidSync({ game: 'test', locale: 'test' })).toEqual(false);
+        expect(validator.isValidSync({ game: 'test', locale: 'test', category: 'test' })).toEqual(false);
+        expect(
+            validator.isValidSync({
+                game: 'test',
+                locale: 'test',
+                category: 'test',
+                subcategory: 'test',
+            })
+        ).toEqual(true);
+
+        try {
+            await validator.validate({
+                game: 'test',
+                locale: 'test',
+                category: 'test',
+            });
+        } catch (error) {
+            expect(error.message).toEqual('wizard.validations.is_required');
+        }
+    });
 });
