@@ -1,0 +1,29 @@
+[[Overgear][https://github.com/WASD-Team/documentation/blob/master/images/Overgear.png]]
+
+[[https://github.com/WASD-Team/documentation/blob/master/README.md][Back to index]]
+
+* Overgear validations
+
+We wanted to create a system where validations did not have to be statically compiled into the frontend sources, but rather 
+served from the backend database, and usable by both the backend and the frontend simultaneously.
+
+To do this we created a simple [[https://en.wikipedia.org/wiki/Abstract_syntax_tree][AST]] model using [[https://github.com/jquense/yup][yup]] for validation.
+
+For many examples of the AST we can look into the [[./source/tests/converter.test.js][tests]] file, where different use cases are defined.
+
+* Schema
+
+The schema is defined as follows:
+
+A simple array with a string name is seen as a prefix notational function lookup.
+
+#+BEGIN_SRC json
+  ["yup.object"]
+#+END_SRC
+
+Is seen as a call to the function 
+#+BEGIN_SRC javascript
+  yup.Object()
+#+END_SRC
+
+
