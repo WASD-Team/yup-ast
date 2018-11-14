@@ -1,6 +1,6 @@
 [[Overgear][https://github.com/WASD-Team/documentation/blob/master/images/Overgear.png]]
 
-[[https://github.com/WASD-Team/documentation/blob/master/README.md][Back to index]]
+[[https://github.com/WASD-Team/documentation/blob/master/README.org][Back to index]]
 
 * Overgear validations
 
