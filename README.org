@@ -78,3 +78,23 @@ and even additional yup validators
   ]
 #+END_SRC
 
+* Custom validators
+** ~addCustomValidator(name, validator, binding = false)~
+Adds a custom validator by name:
+#+BEGIN_SRC javascript
+  addCustomValidator('myCustomValidator', yup.number().min(50).max(500))
+#+END_SRC
+Which creates a custom validator, to be used as:
+#+BEGIN_SRC json
+  [
+    ["myCustomValidator"]
+  ]
+#+END_SRC
+** ~getCustomValidator(name)~
+Gets the value of a custom validator
+** ~delCustomValidator(name)~
+Removes a validator which the user has added
+
+* Generated validator
+
+Since the result of a call to transformAll is a yup validator, please see the [[https://github.com/jquense/yup][yup documentation]] for more information about features available.
