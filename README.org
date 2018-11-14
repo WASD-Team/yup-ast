@@ -26,4 +26,55 @@ Is seen as a call to the function
   yup.Object()
 #+END_SRC
 
+Functions can be chained together by surrounding them by an array:
+
+#+BEGIN_SRC json
+  [
+      ["yup.object"],
+      ["yup.required"],
+  ]
+#+END_SRC
+
+Anything else in the array after the prefix function is treated as an argument to be passed to that function:
+
+#+BEGIN_SRC json
+  [
+      ["yup.number"],
+      ["yup.required"],
+      ["yup.min", 50],
+      ["yup.max", 500],
+
+  ]
+#+END_SRC
+
+(Which validates that a number is required, greater than 50 and less than 500.
+
+Multiple arguments can be passed to functions
+
+#+BEGIN_SRC json
+  [
+      ["yup.number"],
+      ["yup.required"],
+      ["yup.min", 50, "This is the error for failing this validation"],
+      ["yup.max", 500, "Number should be less than 500"],
+  ]
+#+END_SRC
+
+and even additional yup validators
+
+#+BEGIN_SRC json
+  [
+      ["yup.object"],
+      ["yup.required"],
+      [
+          "yup.shape",
+          {
+              "game": [["yup.string"], ["yup.required", "wizard.validations.is_required"]],
+              "locale": [["yup.string"], ["yup.required", "wizard.validations.is_required"]],
+              "category": [["yup.string"], ["yup.required", "wizard.validations.is_required"]],
+              "subcategory": [["yup.string"], ["yup.required", "wizard.validations.is_required"]],
+          },
+      ],
+  ]
+#+END_SRC
 
