@@ -1,6 +1,6 @@
 [[./images/Overgear.png]]
 
-* Overgear validations
+* YUP AST to validatior generator
 
 We wanted to create a system where validations did not have to be statically compiled into the frontend sources, but rather 
 served from the backend database, and usable by both the backend and the frontend simultaneously.
