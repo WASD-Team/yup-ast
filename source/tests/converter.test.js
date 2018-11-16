@@ -468,4 +468,45 @@ describe('transform object', () => {
             expect(error.message).toEqual('wizard.validations.is_required');
         }
     });
+
+    it('handles linked form validation', async () => {
+        // We'll create a custom binding which checks if a number is > than another
+        // number which already exists somewhere else in the form
+        function greaterThan(ref, msg) {
+            return this.test({
+                exclusive: false,
+                name: 'greaterThan',
+                params: { reference: ref.path },
+                // This must be a function
+                // If not we lose some binding
+                test: function(value) {
+                    return value > this.resolve(ref);
+                },
+                message: msg || '${path} must be the greater than ${reference}',
+            });
+        }
+
+        // Here we'll bind this new function to the yup.number generator
+        yup.addMethod(yup.number, 'linkedGreaterThan', greaterThan);
+
+        const validator = transformAll([
+            ['yup.object'],
+            ['yup.required'],
+            [
+                'yup.shape',
+                {
+                    testValueSimple: [['yup.number'], ['yup.required']],
+                    linkedTest: [
+                        ['yup.number'],
+                        ['yup.required'],
+                        ['yup.linkedGreaterThan', ['yup.ref', 'testValueSimple']],
+                    ],
+                },
+            ],
+        ]);
+
+        expect(validator.isValidSync({ testValueSimple: 1 })).toEqual(false);
+        expect(validator.isValidSync({ testValueSimple: 100, linkedTest: 1 })).toEqual(false);
+        expect(validator.isValidSync({ testValueSimple: 100, linkedTest: 101 })).toEqual(true);
+    });
 });
