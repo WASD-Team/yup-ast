@@ -14,4 +14,4 @@ fi
 
 PROJECT_DIRECTORY=$1
 
-nodemon --watch source/ --exec "yarn build:dev:once && cp dist/index.js $PROJECT_DIRECTORY/node_modules/\@overgear/og-validations/"
+nodemon --watch source/ --exec "yarn build:dev:once && cp dist/index.js $PROJECT_DIRECTORY/node_modules/\@overgear/yup-ast/"
