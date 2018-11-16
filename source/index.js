@@ -1,3 +1,7 @@
+// Make yup available
+import * as yupImport from 'yup';
+export const yup = yupImport;
+
 export {
     // Allows user to create their own custom validation sets
     addCustomValidator,
