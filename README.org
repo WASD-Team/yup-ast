@@ -9,6 +9,18 @@ To do this we created a simple [[https://en.wikipedia.org/wiki/Abstract_syntax_t
 
 For many examples of the AST we can look into the [[./source/tests/converter.test.js][tests]] file, where different use cases are defined.
 
+* Installing
+
+With NPM: 
+#+BEGIN_SRC bash
+  npm install @overgear/yup-ast
+#+END_SRC
+
+With yarn: 
+#+BEGIN_SRC bash
+  yarn add @overgear/yup-ast
+#+END_SRC
+
 * Schema
 
 The schema is defined as follows:
