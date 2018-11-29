@@ -149,7 +149,10 @@ const objectTests = [
     },
     {
         name: 'Creates a nested object shape',
-        input: [['yup.object'], ['yup.shape', { test: [['yup.object'], ['yup.shape', {}], ['yup.required']] }]],
+        input: [
+            ['yup.object'],
+            ['yup.shape', { test: [['yup.object'], ['yup.shape', {}], ['yup.required']] }],
+        ],
         validates: {
             // prettier-no-wrap
             success: [{ test: {} }],
@@ -174,7 +177,9 @@ describe('correctly transforms data from JSON to YUP', () => {
                 const generatedValidator = transformAll(input);
 
                 success.forEach(item => expect(generatedValidator.isValidSync(item)).toEqual(true));
-                failure.forEach(item => expect(generatedValidator.isValidSync(item)).toEqual(false));
+                failure.forEach(item =>
+                    expect(generatedValidator.isValidSync(item)).toEqual(false),
+                );
             });
         });
     });
@@ -185,7 +190,9 @@ describe('correctly transforms data from JSON to YUP', () => {
                 const generatedValidator = transformAll(input);
 
                 success.forEach(item => expect(generatedValidator.isValidSync(item)).toEqual(true));
-                failure.forEach(item => expect(generatedValidator.isValidSync(item)).toEqual(false));
+                failure.forEach(item =>
+                    expect(generatedValidator.isValidSync(item)).toEqual(false),
+                );
             });
         });
     });
@@ -196,7 +203,9 @@ describe('correctly transforms data from JSON to YUP', () => {
                 const generatedValidator = transformAll(input);
 
                 success.forEach(item => expect(generatedValidator.isValidSync(item)).toEqual(true));
-                failure.forEach(item => expect(generatedValidator.isValidSync(item)).toEqual(false));
+                failure.forEach(item =>
+                    expect(generatedValidator.isValidSync(item)).toEqual(false),
+                );
             });
         });
     });
@@ -304,7 +313,9 @@ describe('transform object', () => {
             ],
         ]);
 
-        expect(validator.isValidSync({ title: { en: '12345', ru: '12345' }, value: 5 })).toEqual(true);
+        expect(validator.isValidSync({ title: { en: '12345', ru: '12345' }, value: 5 })).toEqual(
+            true,
+        );
         expect(validator.isValidSync({ title: { en: '12345', ru: '12345' } })).toEqual(false);
         expect(validator.isValidSync({ title: { ru: '12345' }, value: 5 })).toEqual(false);
         expect(validator.isValidSync({ title: { en: '12345' }, value: 5 })).toEqual(false);
@@ -346,13 +357,13 @@ describe('transform object', () => {
                 test: {
                     number: 'A',
                 },
-            })
+            }),
         ).toEqual(false);
 
         expect(
             validator.isValidSync({
                 test: {},
-            })
+            }),
         ).toEqual(false);
     });
 
@@ -387,7 +398,7 @@ describe('transform object', () => {
                 {
                     number: 'A',
                 },
-            ])
+            ]),
         ).toEqual(false);
 
         expect(
@@ -395,7 +406,7 @@ describe('transform object', () => {
                 {
                     number: {},
                 },
-            ])
+            ]),
         ).toEqual(false);
 
         expect(
@@ -403,7 +414,7 @@ describe('transform object', () => {
                 {
                     number: 20,
                 },
-            ])
+            ]),
         ).toEqual(true);
 
         expect(
@@ -411,7 +422,7 @@ describe('transform object', () => {
                 {
                     number: 50,
                 },
-            ])
+            ]),
         ).toEqual(true);
 
         expect(
@@ -419,7 +430,7 @@ describe('transform object', () => {
                 {
                     number: 51,
                 },
-            ])
+            ]),
         ).toEqual(false);
 
         expect(
@@ -427,7 +438,7 @@ describe('transform object', () => {
                 {
                     number: 19,
                 },
-            ])
+            ]),
         ).toEqual(false);
     });
 
@@ -441,21 +452,26 @@ describe('transform object', () => {
                     game: [['yup.string'], ['yup.required', 'wizard.validations.is_required']],
                     locale: [['yup.string'], ['yup.required', 'wizard.validations.is_required']],
                     category: [['yup.string'], ['yup.required', 'wizard.validations.is_required']],
-                    subcategory: [['yup.string'], ['yup.required', 'wizard.validations.is_required']],
+                    subcategory: [
+                        ['yup.string'],
+                        ['yup.required', 'wizard.validations.is_required'],
+                    ],
                 },
             ],
         ]);
 
         expect(validator.isValidSync({ game: 'test' })).toEqual(false);
         expect(validator.isValidSync({ game: 'test', locale: 'test' })).toEqual(false);
-        expect(validator.isValidSync({ game: 'test', locale: 'test', category: 'test' })).toEqual(false);
+        expect(validator.isValidSync({ game: 'test', locale: 'test', category: 'test' })).toEqual(
+            false,
+        );
         expect(
             validator.isValidSync({
                 game: 'test',
                 locale: 'test',
                 category: 'test',
                 subcategory: 'test',
-            })
+            }),
         ).toEqual(true);
 
         try {
@@ -508,5 +524,64 @@ describe('transform object', () => {
         expect(validator.isValidSync({ testValueSimple: 1 })).toEqual(false);
         expect(validator.isValidSync({ testValueSimple: 100, linkedTest: 1 })).toEqual(false);
         expect(validator.isValidSync({ testValueSimple: 100, linkedTest: 101 })).toEqual(true);
+    });
+});
+
+describe('Complex edge cases', () => {
+    function equalTo(ref, msg) {
+        console.log(msg);
+        return this.test({
+            name: 'equalTo',
+            exclusive: false,
+            message: msg || 'DEFAULT error',
+            params: {
+                reference: ref.path,
+            },
+            test: function(value) {
+                return value === this.resolve(ref);
+            },
+        });
+    }
+
+    yup.addMethod(yup.string, 'equalTo', equalTo);
+
+    it('our yup ast validations can extract custom error', () => {
+        const schema = transformAll([
+            ['yup.object'],
+            ['yup.required'],
+            [
+                'yup.shape',
+                {
+                    testValue1: [
+                        ['yup.string'],
+                        ['yup.equalTo', ['yup.ref', 'linkedValue'], 'CUSTOM error'],
+                        ['yup.required'],
+                    ],
+                    testValue2: [
+                        ['yup.string'],
+                        ['yup.equalTo', ['yup.ref', 'linkedValue']],
+                        ['yup.required'],
+                    ],
+                    testValue3: [
+                        ['yup.string'],
+                        ['yup.equalTo', ['yup.ref', 'linkedValue'], 'CUSTOM error2'],
+                        ['yup.required'],
+                    ],
+                    linkedValue: [['yup.string']],
+                },
+            ],
+        ]);
+
+        try {
+            schema.validateSync({
+                testValue1: 'one',
+                testValue2: 'two',
+                testValue3: 'sdasd',
+                linkedValue: 'three',
+            });
+            throw new Error('should.not.reach.here');
+        } catch (err) {
+            expect(err.message).toEqual('CUSTOM error2');
+        }
     });
 });

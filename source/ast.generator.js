@@ -124,12 +124,6 @@ function convertArray(arrayArgument, previousInstance = yup) {
     // yup.object().shape({ test: yup.string()}) should also be transformed
     const convertedArguments = transformAll(argsToPass, previousInstance);
 
-    if (~argsToPass.indexOf('CUSTOM error')) {
-        console.log('functionName', functionName);
-        console.log('argsToPass', argsToPass);
-        console.error('convertedArguments', convertedArguments);
-    }
-
     // Handle the case when we've got an array of empty elements
     if (convertedArguments instanceof Array) {
         if (convertedArguments.filter(i => i).length < 1) {
@@ -166,7 +160,15 @@ function transformArray(jsonArray, previousInstance = yup) {
             return;
         }
 
-        return transformAll(item, previousInstance);
+        // Handle an edge case where we have something like
+        // [['yup.ref', 'linkName'], 'custom error'], and we don't want
+        // to consume 'custom error as a variable yet'
+        if (toReturn instanceof Array) {
+            toReturn = toReturn.concat(item);
+            return;
+        }
+
+        toReturn = [toReturn, item];
     });
 
     return toReturn;
