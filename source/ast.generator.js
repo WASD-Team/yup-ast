@@ -160,7 +160,15 @@ function transformArray(jsonArray, previousInstance = yup) {
             return;
         }
 
-        return transformAll(item, previousInstance);
+        // Handle an edge case where we have something like
+        // [['yup.ref', 'linkName'], 'custom error'], and we don't want
+        // to consume 'custom error as a variable yet'
+        if (toReturn instanceof Array) {
+            toReturn = toReturn.concat(item);
+            return;
+        }
+
+        toReturn = [toReturn, item];
     });
 
     return toReturn;
@@ -245,7 +253,11 @@ export function transform(jsonObjectOrArray) {
         return transformAll(jsonObjectOrArray);
     } catch (error) {
         if (error instanceof ValidationError) {
-            throw new Error('Could not validate ' + JSON.stringify(jsonObjectOrArray, null, 4) + `\n${error.message}`);
+            throw new Error(
+                'Could not validate ' +
+                    JSON.stringify(jsonObjectOrArray, null, 4) +
+                    `\n${error.message}`,
+            );
         }
 
         throw error;
