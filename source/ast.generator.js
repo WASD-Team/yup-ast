@@ -124,6 +124,12 @@ function convertArray(arrayArgument, previousInstance = yup) {
     // yup.object().shape({ test: yup.string()}) should also be transformed
     const convertedArguments = transformAll(argsToPass, previousInstance);
 
+    if (~argsToPass.indexOf('CUSTOM error')) {
+        console.log('functionName', functionName);
+        console.log('argsToPass', argsToPass);
+        console.error('convertedArguments', convertedArguments);
+    }
+
     // Handle the case when we've got an array of empty elements
     if (convertedArguments instanceof Array) {
         if (convertedArguments.filter(i => i).length < 1) {
@@ -245,7 +251,11 @@ export function transform(jsonObjectOrArray) {
         return transformAll(jsonObjectOrArray);
     } catch (error) {
         if (error instanceof ValidationError) {
-            throw new Error('Could not validate ' + JSON.stringify(jsonObjectOrArray, null, 4) + `\n${error.message}`);
+            throw new Error(
+                'Could not validate ' +
+                    JSON.stringify(jsonObjectOrArray, null, 4) +
+                    `\n${error.message}`,
+            );
         }
 
         throw error;
