@@ -127,7 +127,11 @@ function convertArray(arrayArgument, previousInstance = yup) {
     // Handle the case when we've got an array of empty elements
     if (convertedArguments instanceof Array) {
         if (convertedArguments.filter(i => i).length < 1) {
+          if (typeof gotFunc === 'function') {
             return gotFunc();
+          } else if (typeof gotFunc === 'object' && gotFunc.constructor.name.toLowerCase().indexOf('schema') > -1) {
+            return gotFunc;
+          }
         }
 
         // Spread the array over the function
