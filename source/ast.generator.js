@@ -126,7 +126,7 @@ function convertArray(arrayArgument, previousInstance = yup) {
 
     // Handle the case when we've got an array of empty elements
     if (convertedArguments instanceof Array) {
-        if (convertedArguments.filter(i => i).length < 1) {
+        if (convertedArguments.filter(i => i !== undefined).length < 1) {
             return gotFunc();
         }
 
