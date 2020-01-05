@@ -87,6 +87,15 @@ const numberTests = [
             failure: [1, 2, 3, 4, 501, 502, 503],
         },
     },
+    {
+        name: 'Converts simple type with falsy args',
+        input: [['yup.number'], ['yup.required'], ['yup.min', 0]],
+        validates: {
+            // prettier-no-wrap
+            success: [0, 50],
+            failure: [-50],
+        },
+    },
 ];
 
 const stringTests = [
