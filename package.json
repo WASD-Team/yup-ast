@@ -53,7 +53,7 @@
         "babel-preset-node8": "^1.2.0",
         "babel-preset-react": "^6.24.1",
         "babel-preset-stage-2": "^6.24.1",
-        "flat": "^4.1.0",
+        "flat": "^5.0.1",
         "idempotent-babel-polyfill": "^6.26.0",
         "immutable": "^4.0.0-rc.9",
         "lodash": "^4.17.10",
